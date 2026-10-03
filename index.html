@@ -365,6 +365,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const $=id=>document.getElementById(id);
 const fd=d=>(typeof d==="string"?pd(d):d).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 const yt=n=>"https://www.youtube.com/results?search_query="+encodeURIComponent(n+" exercise how to");
+const fmtC=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
 const fmtT=s=>s>=60?Math.floor(s/60)+":"+String(s%60).padStart(2,"0"):String(s);
 const clampN=()=>Math.max(1,Math.min(42,dayNum(new Date())));
 function haptic(){if(navigator.vibrate){navigator.vibrate(8);return}const l=document.createElement("label"),i=document.createElement("input");i.type="checkbox";i.setAttribute("switch","");l.appendChild(i);l.style.display="none";document.body.appendChild(l);l.click();l.remove()}
@@ -683,7 +684,7 @@ function renderPlan(){
  const L=[...S.logs].sort((a,b)=>a.d<b.d?-1:1),wl=L.filter(x=>x.w),dw=wl.length>1?wl.at(-1).w-wl[0].w:null;
  let h=`<div class="stats"><div class="stat"><div class="k">Workouts</div><div class="v">${done}<span class="u">/${trained}</span></div><div class="u">completed</div></div><div class="stat"><div class="k">Streak</div><div class="v">${streak}</div><div class="u">workouts 🔥</div></div><div class="stat"><div class="k">Weight</div><div class="v">${dw===null?"—":(dw>0?"+":"")+dw.toFixed(1)}</div><div class="u">kg since start</div></div></div>`;
  const TT=[...S.times].sort((a,b)=>a.n-b.n),best=TT.length?Math.min(...TT.map(x=>x.s)):null;
- h+=sh("300-rep finisher times")+(TT.length?`<div class="list flat">${TT.map(x=>`<div class="cell"><div class="ct"><div class="t1">Week ${wdOf(x.n).w} · ${fd(x.d)}</div></div><span class="val" style="color:${x.s===best?"var(--green)":"var(--l2)"};font-weight:600">${fmtT(x.s)}${x.s===best?" 🏆":""}</span></div>`).join("")}</div>`:`<div class="card"><div class="empty" style="padding:14px">Shoulder / Abs days end with 300 reps for time. Use the guided workout stopwatch and your times appear here. Beat them every week!</div></div>`);
+ h+=sh("300-rep finisher times")+(TT.length?`<div class="list flat">${TT.map(x=>`<div class="cell"><div class="ct"><div class="t1">Week ${wdOf(x.n).w} · ${fd(x.d)}</div></div><span class="val" style="color:${x.s===best?"var(--green)":"var(--l2)"};font-weight:600">${fmtC(x.s)}${x.s===best?" 🏆":""}</span></div>`).join("")}</div>`:`<div class="card"><div class="empty" style="padding:14px">Shoulder / Abs days end with 300 reps for time. Use the guided workout stopwatch and your times appear here. Beat them every week!</div></div>`);
  h+=sh("Trend")+`<div class="card">${seg("ck",["Weight","Waist"],ck==="w"?0:1)}${chart(ck)}</div>`;
  let cal=`<div class="wl"></div>${[1,2,3,4,5,6,7].map(x=>`<div class="wl" style="text-align:center">D${x}</div>`).join("")}`;
  for(let w=0;w<6;w++){cal+=`<div class="wl">W${w+1}</div>`;for(let j=1;j<=7;j++){const i=w*7+j,ok=getd(i,"W"),r=isRest(i),ms=!ok&&!r&&i<n;cal+=`<div class="c ${ok?"ok":ms?"ms":""} ${i===n?"td":""}" data-gow="${w+1}" data-god="${j}" title="${fd(dateOf(i))}">${ok?"✓":r?"😴":i}</div>`}}
@@ -728,15 +729,15 @@ function draw(){
  if(P.mode==="done"){h+=`<div class="fin"><div class="big">🏆</div><h2>Warrior session done!</h2><p>Drink water, get your protein in, and rest up.</p></div><div class="plsp"></div><button class="btn" data-pl="close">Back</button>`}
  else if(P.mode==="rest"){const up=nextWork(P.i);h+=`<div class="plsp"></div><div class="plt">${ring(P.left,P.total,true,"Rest")}</div><div class="plrow"><button class="btn gray" data-pl="plus">+15s</button><button class="btn" data-pl="skip">Skip rest</button></div>${up&&!up.time?`<div class="upnext">${thumb(up.id)}<div class="ct"><div class="k">Up next${up.sub?" · "+up.sub:""}</div><div class="v">${esc(nm(up.id))}</div><div class="k rx">${esc(up.lab)}</div></div></div>`:""}<div class="plsp"></div>`}
  else if(s.time){const best=S.times.length?Math.min(...S.times.map(x=>x.s)):null;
-  h+=`<div class="sf" style="margin:0 2px">${esc(s.bh)}</div><div class="pln">300 reps for time</div><div class="sw" id="swv">${fmtT(P.sw)}</div><div class="swl">${best!==null?`Best: ${fmtT(best)} — beat it!`:"First attempt — set your benchmark"}</div>
+  h+=`<div class="sf" style="margin:0 2px">${esc(s.bh)}</div><div class="pln">300 reps for time</div><div class="sw" id="swv">${fmtC(P.sw)}</div><div class="swl">${best!==null?`Best: ${fmtC(best)} — beat it!`:"First attempt — set your benchmark"}</div>
   <div class="list mt">${s.x.map((x,j)=>`<div class="cell ${P.ticks[j]?"dn":""}">${thumb(x.e)}<div class="ct"><div class="t1">${esc(nm(x.e))}</div><div class="t2 rx">${x.r} reps</div></div><button class="chk ${P.ticks[j]?"on":""}" data-swt="${j}"></button></div>`).join("")}</div><div class="plsp"></div>
-  ${P.swOn?`<button class="btn" data-pl="swstop">⏹ Finish & save time</button>`:`<button class="btn" data-pl="swgo">${P.sw?"▶ Resume":"▶ Start stopwatch"}</button>`}${P.sw&&!P.swOn?`<button class="btn gray" data-pl="swstop" style="margin-top:8px">Save ${fmtT(P.sw)}</button>`:""}`}
+  ${P.swOn?`<button class="btn" data-pl="swstop">⏹ Finish & save time</button>`:`<button class="btn" data-pl="swgo">${P.sw?"▶ Resume":"▶ Start stopwatch"}</button>`}${P.sw&&!P.swOn?`<button class="btn gray" data-pl="swstop" style="margin-top:8px">Save ${fmtC(P.sw)}</button>`:""}`}
  else{const x=EX[s.id];
   h+=`${media(s.id)}<div class="sf" style="margin:8px 2px 0">${esc(s.bh)}</div><div class="pln">${esc(x.n)}</div><span class="badge" style="align-self:flex-start;margin-top:8px;font-size:14px">${esc(s.lab)}</span>
    ${s.dots?`<div class="pldots">${Array.from({length:s.dots[1]},(_,j)=>`<i class="${j<s.dots[0]-1?"on":""}"></i>`).join("")}</div>`:""}${s.sub?`<div class="sf" style="margin:6px 2px 0">${s.sub}</div>`:""}
    <div class="tipbox" style="font-size:14px">${esc(x.t)}</div>${S.mode==="home"&&x.h?`<div class="tipbox" style="font-size:14px;background:color-mix(in srgb,var(--r3) 13%,var(--bg2))"><b style="color:var(--r3)">🏠 Home · </b>${esc(x.h)}</div>`:""}<div class="plsp"></div>`;
   if(P.mode==="timer")h+=`<div class="plt">${ring(P.left,P.total,false,"Go!")}</div><button class="btn gray" data-pl="setdone">Finish early</button>`;
-  else h+=s.sec?`<button class="btn" data-pl="go">▶ Start ${fmtT(s.sec)} timer</button><button class="btn gray" data-pl="setdone" style="margin-top:8px">Done without timer</button>`:`<button class="btn" data-pl="setdone">✓ Done</button>`;
+  else h+=s.sec?`<button class="btn" data-pl="go">▶ Start ${s.sec<60?s.sec+"s":fmtT(s.sec)} timer</button><button class="btn gray" data-pl="setdone" style="margin-top:8px">Done without timer</button>`:`<button class="btn" data-pl="setdone">✓ Done</button>`;
   h+=`<div class="plrow"><button class="btn gray" data-pl="prev" ${pos<=0?"disabled style='opacity:.4'":""}>‹ Previous</button><button class="btn gray" data-pl="next">Skip ›</button></div>`}
  $("pl").innerHTML=h;figLoop();
 }
@@ -755,8 +756,8 @@ document.addEventListener("click",ev=>{
  else if(a==="plus"){PL.left+=15;PL.total+=15}
  else if(a==="next"){PL.auto=false;let j=PL.i+1;while(PL.steps[j]&&PL.steps[j].rest)j++;goStep(j)}
  else if(a==="prev"){PL.auto=false;let j=PL.i-1;while(j>0&&PL.steps[j].rest)j--;if(j>=0)goStep(j)}
- else if(a==="swgo"){haptic();beep(880,.15);PL.swOn=true;const t0=Date.now()-PL.sw*1000;PL.swT=setInterval(()=>{PL.sw=Math.floor((Date.now()-t0)/1000);const e=$("swv");if(e)e.textContent=fmtT(PL.sw)},250);draw()}
- else if(a==="swstop"){clearInterval(PL.swT);PL.swOn=false;if(PL.sw>0){S.times=S.times.filter(x=>x.n!==PL.n);S.times.push({n:PL.n,d:ymd(new Date()),s:PL.sw});save();setd(PL.n,`b${s.bi}-0`,true);s.x.forEach((_,j)=>setd(PL.n,`b${s.bi}-${j}`,true));toast("⏱ Time saved: "+fmtT(PL.sw))}goStep(PL.i+1)}
+ else if(a==="swgo"){haptic();beep(880,.15);PL.swOn=true;const t0=Date.now()-PL.sw*1000;PL.swT=setInterval(()=>{PL.sw=Math.floor((Date.now()-t0)/1000);const e=$("swv");if(e)e.textContent=fmtC(PL.sw)},250);draw()}
+ else if(a==="swstop"){clearInterval(PL.swT);PL.swOn=false;if(PL.sw>0){S.times=S.times.filter(x=>x.n!==PL.n);S.times.push({n:PL.n,d:ymd(new Date()),s:PL.sw});save();setd(PL.n,`b${s.bi}-0`,true);s.x.forEach((_,j)=>setd(PL.n,`b${s.bi}-${j}`,true));toast("⏱ Time saved: "+fmtC(PL.sw))}goStep(PL.i+1)}
 });
 
 /* ================= NAV & EVENTS ================= */
